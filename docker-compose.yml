@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: taskplanner-postgres
+    environment:
+      POSTGRES_USER: taskplanner_user
+      POSTGRES_PASSWORD: taskplanner_password
+      POSTGRES_DB: taskplanner
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  pgdata:
+    driver: local

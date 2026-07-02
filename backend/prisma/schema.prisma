@@ -1,0 +1,238 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  full_name    String?
+  role         String?   @default("employee")
+  password     String
+  created_date DateTime  @default(now())
+  updated_date DateTime  @updatedAt
+
+  employee     Employee?
+
+  @@map("users")
+}
+
+model Employee {
+  id            String   @id @default(uuid())
+  user_id       String   @unique
+  full_name     String
+  email         String   @unique
+  role          String   // 'super_admin' | 'company_admin' | 'manager' | 'team_leader' | 'employee'
+  status        String   @default("active") // 'active' | 'inactive'
+  employee_code String   @unique
+  joining_date  String
+  phone         String?
+  department    String?
+  designation   String?
+  created_date  DateTime @default(now())
+  updated_date  DateTime @updatedAt
+
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("employees")
+}
+
+model Bucket {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  color       String?
+  status      String   @default("active") // 'active' | 'archived'
+  due_date    String?
+  created_date DateTime @default(now())
+  updated_date DateTime @updatedAt
+
+  @@map("buckets")
+}
+
+model Task {
+  id                 String   @id @default(uuid())
+  title              String
+  description        String?
+  bucket_id          String?
+  bucket_name        String?
+  assigned_to_id     String?
+  assigned_to_name   String?
+  assigned_by_id     String?
+  assigned_by_name   String?
+  priority           String   @default("medium") // 'low' | 'medium' | 'high' | 'urgent'
+  status             String   @default("todo")   // 'todo' | 'in_progress' | 'in_review' | 'completed' | 'archived'
+  start_date         String?
+  due_date           String?
+  estimated_hours    Float?
+  is_recurring       Boolean  @default(false)
+  recurrence_pattern String?  @default("none") // 'none' | 'daily' | 'weekly' | 'monthly'
+  labels             String[] @default([])
+  completed_at       String?
+  created_date       DateTime @default(now())
+  updated_date       DateTime @updatedAt
+
+  checklist          TaskChecklist[]
+  comments           TaskComment[]
+
+  @@map("tasks")
+}
+
+model TaskChecklist {
+  id           String   @id @default(uuid())
+  task_id      String
+  text         String
+  completed    Boolean  @default(false)
+  created_date DateTime @default(now())
+
+  task         Task     @relation(fields: [task_id], references: [id], onDelete: Cascade)
+
+  @@map("task_checklists")
+}
+
+model TaskComment {
+  id            String   @id @default(uuid())
+  task_id       String
+  employee_id   String
+  employee_name String
+  content       String
+  created_date  DateTime @default(now())
+
+  task          Task     @relation(fields: [task_id], references: [id], onDelete: Cascade)
+
+  @@map("task_comments")
+}
+
+model Attendance {
+  id            String   @id @default(uuid())
+  employee_id   String
+  employee_name String
+  date          String
+  status        String   // 'present' | 'absent' | 'late' | 'half_day' | 'wfh' | 'leave'
+  clock_in      String?
+  clock_out     String?
+  working_hours Float?
+  notes         String?
+  created_date  DateTime @default(now())
+
+  @@map("attendance")
+}
+
+model Timesheet {
+  id            String   @id @default(uuid())
+  employee_id   String
+  employee_name String
+  date          String
+  clock_in      String
+  clock_out     String?
+  hours         Float?
+  task_id       String?
+  task_title    String?
+  bucket_id     String?
+  bucket_name   String?
+  description   String?
+  created_date  DateTime @default(now())
+
+  @@map("timesheets")
+}
+
+model Notice {
+  id           String   @id @default(uuid())
+  title        String
+  content      String
+  priority     String   @default("medium") // 'low' | 'medium' | 'high'
+  published_by String
+  expiry_date  String?
+  created_date DateTime @default(now())
+
+  @@map("notices")
+}
+
+model Meeting {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  date         String
+  time         String
+  duration     Int      // in minutes
+  link         String?
+  attendees    String[] // array of employee user_ids or emails
+  created_date DateTime @default(now())
+
+  @@map("meetings")
+}
+
+model Item {
+  id           String   @id @default(uuid())
+  name         String
+  description  String?
+  category     String
+  quantity     Int
+  status       String   @default("available") // 'available' | 'low_stock' | 'out_of_stock'
+  created_date DateTime @default(now())
+
+  @@map("items")
+}
+
+model ExternalAlert {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  priority     String   @default("medium") // 'low' | 'medium' | 'high' | 'urgent'
+  status       String   @default("active") // 'active' | 'resolved' | 'expired'
+  expiry_date  String?
+  created_date DateTime @default(now())
+
+  @@map("external_alerts")
+}
+
+model Notification {
+  id           String   @id @default(uuid())
+  user_id      String
+  title        String
+  message      String
+  type         String
+  is_read      Boolean  @default(false)
+  link         String?
+  created_date DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model Holiday {
+  id   String @id @default(uuid())
+  name String
+  date String
+  type String // 'public' | 'company' | 'restricted'
+
+  @@map("holidays")
+}
+
+model CompanySettings {
+  id            String   @id @default(uuid())
+  company_name  String
+  address       String?
+  phone         String?
+  email         String?
+  website       String?
+  logo_url      String?
+  working_days  Int?
+  working_hours Float?
+  created_date  DateTime @default(now())
+
+  @@map("settings")
+}
+
+model ActivityLog {
+  id           String   @id @default(uuid())
+  user_name    String
+  action       String
+  details      String
+  created_date DateTime @default(now())
+
+  @@map("activity_logs")
+}
