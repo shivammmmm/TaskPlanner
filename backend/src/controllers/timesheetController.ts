@@ -4,7 +4,9 @@ import { AuthenticatedRequest } from '../middleware/auth';
 
 export const listTimesheets = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const employeeId = typeof req.query.employee_id === 'string' ? req.query.employee_id : undefined;
     const list = await prisma.timesheet.findMany({
+      where: employeeId ? { employee_id: employeeId } : undefined,
       orderBy: { date: 'desc' }
     });
     return res.status(200).json({ success: true, data: list });
@@ -19,8 +21,8 @@ export const createTimesheet = async (req: AuthenticatedRequest, res: Response) 
     hours, task_id, task_title, bucket_id, bucket_name, description
   } = req.body;
 
-  if (!date || !clock_in) {
-    return res.status(400).json({ success: false, message: 'Date and clock-in time are required' });
+  if (!date) {
+    return res.status(400).json({ success: false, message: 'Date is required' });
   }
 
   try {
@@ -32,14 +34,15 @@ export const createTimesheet = async (req: AuthenticatedRequest, res: Response) 
         employee_id: empId,
         employee_name: empName,
         date,
-        clock_in,
+        clock_in: clock_in || null,
         clock_out: clock_out || null,
         hours: hours !== undefined ? parseFloat(hours) : null,
         task_id: task_id || null,
         task_title: task_title || null,
         bucket_id: bucket_id || null,
         bucket_name: bucket_name || null,
-        description: description || null
+        description: description || null,
+        is_billable: req.body.is_billable !== false
       }
     });
 

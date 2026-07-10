@@ -78,8 +78,24 @@ model Task {
 
   checklist          TaskChecklist[]
   comments           TaskComment[]
+  attachments        TaskAttachment[]
 
   @@map("tasks")
+}
+
+model TaskAttachment {
+  id           String   @id @default(uuid())
+  task_id      String
+  file_name    String
+  mime_type    String
+  size         Int
+  data_url     String
+  uploaded_by  String?
+  created_date DateTime @default(now())
+
+  task         Task     @relation(fields: [task_id], references: [id], onDelete: Cascade)
+
+  @@map("task_attachments")
 }
 
 model TaskChecklist {
@@ -127,7 +143,7 @@ model Timesheet {
   employee_id   String
   employee_name String
   date          String
-  clock_in      String
+  clock_in      String?
   clock_out     String?
   hours         Float?
   task_id       String?
@@ -135,6 +151,7 @@ model Timesheet {
   bucket_id     String?
   bucket_name   String?
   description   String?
+  is_billable   Boolean  @default(true)
   created_date  DateTime @default(now())
 
   @@map("timesheets")
@@ -157,10 +174,18 @@ model Meeting {
   title        String
   description  String?
   date         String
-  time         String
-  duration     Int      // in minutes
+  time         String?
+  duration     Int?     // in minutes
   link         String?
-  attendees    String[] // array of employee user_ids or emails
+  attendees    String[] @default([]) // array of employee user_ids or emails
+  agenda       String?
+  start_time   String?
+  end_time     String?
+  status       String   @default("scheduled")
+  reminder     String?
+  location     String?
+  organizer_id String?
+  organizer_name String?
   created_date DateTime @default(now())
 
   @@map("meetings")
@@ -222,6 +247,10 @@ model CompanySettings {
   logo_url      String?
   working_days  Int?
   working_hours Float?
+  timezone      String   @default("UTC")
+  language      String   @default("en")
+  work_start_time String @default("09:00")
+  work_end_time String   @default("18:00")
   created_date  DateTime @default(now())
 
   @@map("settings")

@@ -14,10 +14,10 @@ export const listMeetings = async (req: AuthenticatedRequest, res: Response) => 
 };
 
 export const createMeeting = async (req: AuthenticatedRequest, res: Response) => {
-  const { title, description, date, time, duration, link, attendees } = req.body;
+  const { title, description, date, time, duration, link, attendees, agenda, start_time, end_time, status, reminder, location, organizer_id, organizer_name } = req.body;
 
-  if (!title || !date || !time || !duration) {
-    return res.status(400).json({ success: false, message: 'Title, date, time, and duration are required' });
+  if (!title || !date) {
+    return res.status(400).json({ success: false, message: 'Title and date are required' });
   }
 
   try {
@@ -26,10 +26,12 @@ export const createMeeting = async (req: AuthenticatedRequest, res: Response) =>
         title,
         description: description || null,
         date,
-        time,
-        duration: parseInt(duration),
+        time: time || start_time || null,
+        duration: duration !== undefined ? parseInt(duration) : null,
         link: link || null,
-        attendees: attendees || []
+        attendees: attendees || [], agenda: agenda || null, start_time: start_time || time || null,
+        end_time: end_time || null, status: status || 'scheduled', reminder: reminder || null,
+        location: location || null, organizer_id: organizer_id || null, organizer_name: organizer_name || null
       }
     });
 
@@ -41,7 +43,7 @@ export const createMeeting = async (req: AuthenticatedRequest, res: Response) =>
 
 export const updateMeeting = async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
-  const { title, description, date, time, duration, link, attendees } = req.body;
+  const { title, description, date, time, duration, link, attendees, agenda, start_time, end_time, status, reminder, location, organizer_id, organizer_name } = req.body;
 
   try {
     const record = await prisma.meeting.findUnique({ where: { id } });
@@ -58,7 +60,15 @@ export const updateMeeting = async (req: AuthenticatedRequest, res: Response) =>
         time: time !== undefined ? time : record.time,
         duration: duration !== undefined ? parseInt(duration) : record.duration,
         link: link !== undefined ? link : record.link,
-        attendees: attendees !== undefined ? attendees : record.attendees
+        attendees: attendees !== undefined ? attendees : record.attendees,
+        agenda: agenda !== undefined ? agenda : record.agenda,
+        start_time: start_time !== undefined ? start_time : record.start_time,
+        end_time: end_time !== undefined ? end_time : record.end_time,
+        status: status !== undefined ? status : record.status,
+        reminder: reminder !== undefined ? reminder : record.reminder,
+        location: location !== undefined ? location : record.location,
+        organizer_id: organizer_id !== undefined ? organizer_id : record.organizer_id,
+        organizer_name: organizer_name !== undefined ? organizer_name : record.organizer_name
       }
     });
 

@@ -64,16 +64,20 @@ export default function Timesheets() {
   };
 
   const handleSave = async () => {
-    const task = tasks.find(t => t.id === form.task_id);
-    await timesheetService.createTimesheet({
-      ...form, hours: Number(form.hours),
-      employee_id: employee.user_id, employee_name: employee.full_name,
-      task_title: task?.title || '', bucket_id: task?.bucket_id || '', bucket_name: task?.bucket_name || ''
-    });
-    toast({ title: 'Time entry added' });
-    setShowForm(false);
-    setForm({ task_id: '', date: new Date().toISOString().split('T')[0], hours: '', description: '', is_billable: true });
-    loadData();
+    try {
+      const task = tasks.find(t => t.id === form.task_id);
+      await timesheetService.createTimesheet({
+        ...form, hours: Number(form.hours), clock_in: undefined,
+        employee_id: employee.user_id, employee_name: employee.full_name,
+        task_title: task?.title || '', bucket_id: task?.bucket_id || '', bucket_name: task?.bucket_name || ''
+      });
+      toast({ title: 'Time entry added' });
+      setShowForm(false);
+      setForm({ task_id: '', date: new Date().toISOString().split('T')[0], hours: '', description: '', is_billable: true });
+      loadData();
+    } catch (error) {
+      toast({ title: 'Could not save time entry', description: error.response?.data?.message || error.message, variant: 'destructive' });
+    }
   };
 
   const totalHours = entries.reduce((sum, e) => sum + (e.hours || 0), 0);
@@ -115,8 +119,8 @@ export default function Timesheets() {
       ) : filtered.length === 0 ? (
         <EmptyState icon={Clock} title="No time entries" description="Start tracking your time" actionLabel="Add Entry" onAction={() => setShowForm(true)} />
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table className="w-full min-w-[640px]">
             <thead><tr className="bg-slate-50 border-b">
               <th className="text-left text-xs font-semibold text-slate-500 uppercase px-5 py-3">Date</th>
               <th className="text-left text-xs font-semibold text-slate-500 uppercase px-5 py-3">Task</th>

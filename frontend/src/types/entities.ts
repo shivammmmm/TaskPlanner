@@ -83,7 +83,7 @@ export interface Timesheet {
   employee_id: string;
   employee_name: string;
   date: string;
-  clock_in: string;
+  clock_in?: string;
   clock_out?: string;
   hours?: number;
   task_id?: string;
@@ -91,6 +91,7 @@ export interface Timesheet {
   bucket_id?: string;
   bucket_name?: string;
   description?: string;
+  is_billable?: boolean;
   created_date?: string;
 }
 
@@ -109,10 +110,18 @@ export interface Meeting {
   title: string;
   description?: string;
   date: string;
-  time: string;
-  duration: number; // in minutes
+  time?: string;
+  duration?: number; // in minutes
   link?: string;
   attendees: string[]; // array of employee user_ids or emails
+  agenda?: string;
+  start_time?: string;
+  end_time?: string;
+  status?: string;
+  reminder?: string;
+  location?: string;
+  organizer_id?: string;
+  organizer_name?: string;
   created_date?: string;
 }
 
@@ -136,6 +145,10 @@ export interface CompanySettings {
   logo_url?: string;
   working_days?: number;
   working_hours?: number;
+  timezone?: string;
+  language?: string;
+  work_start_time?: string;
+  work_end_time?: string;
   created_date?: string;
 }
 

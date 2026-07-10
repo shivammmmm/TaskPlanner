@@ -14,7 +14,7 @@ export const getSettings = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const updateSettings = async (req: AuthenticatedRequest, res: Response) => {
-  const { company_name, address, phone, email, website, logo_url, working_days, working_hours } = req.body;
+  const { company_name, address, phone, email, website, logo_url, working_days, working_hours, timezone, language, work_start_time, work_end_time } = req.body;
 
   try {
     const list = await prisma.companySettings.findMany();
@@ -30,7 +30,11 @@ export const updateSettings = async (req: AuthenticatedRequest, res: Response) =
           website: website !== undefined ? website : list[0].website,
           logo_url: logo_url !== undefined ? logo_url : list[0].logo_url,
           working_days: working_days !== undefined ? parseInt(working_days) : list[0].working_days,
-          working_hours: working_hours !== undefined ? parseFloat(working_hours) : list[0].working_hours
+          working_hours: working_hours !== undefined ? parseFloat(working_hours) : list[0].working_hours,
+          timezone: timezone !== undefined ? timezone : list[0].timezone,
+          language: language !== undefined ? language : list[0].language,
+          work_start_time: work_start_time !== undefined ? work_start_time : list[0].work_start_time,
+          work_end_time: work_end_time !== undefined ? work_end_time : list[0].work_end_time
         }
       });
     } else {
@@ -43,7 +47,9 @@ export const updateSettings = async (req: AuthenticatedRequest, res: Response) =
           website: website || null,
           logo_url: logo_url || null,
           working_days: working_days !== undefined ? parseInt(working_days) : 5,
-          working_hours: working_hours !== undefined ? parseFloat(working_hours) : 8
+          working_hours: working_hours !== undefined ? parseFloat(working_hours) : 8,
+          timezone: timezone || 'UTC', language: language || 'en',
+          work_start_time: work_start_time || '09:00', work_end_time: work_end_time || '18:00'
         }
       });
     }

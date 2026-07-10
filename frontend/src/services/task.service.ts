@@ -1,4 +1,4 @@
-import { apiClient } from '../api/apiClient';
+import { apiClient, axiosInstance } from '../api/apiClient';
 import { Task, TaskComment } from '../types/entities';
 
 export const taskService = {
@@ -37,5 +37,19 @@ export const taskService = {
       created_date: new Date().toISOString(),
       ...data
     });
+  },
+
+  async getAttachments(taskId: string): Promise<any[]> {
+    const response = await axiosInstance.get(`/tasks/${taskId}/attachments`);
+    return response.data.data;
+  },
+
+  async uploadAttachment(taskId: string, data: Record<string, any>): Promise<any> {
+    const response = await axiosInstance.post(`/tasks/${taskId}/attachments`, data);
+    return response.data.data;
+  },
+
+  async deleteAttachment(taskId: string, attachmentId: string): Promise<void> {
+    await axiosInstance.delete(`/tasks/${taskId}/attachments/${attachmentId}`);
   }
 };

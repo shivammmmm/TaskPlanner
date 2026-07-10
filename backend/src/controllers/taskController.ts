@@ -276,3 +276,38 @@ export const updateChecklistStatus = async (req: AuthenticatedRequest, res: Resp
     return res.status(500).json({ success: false, message: error.message || 'Server error updating checklist item' });
   }
 };
+
+export const listAttachments = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const attachments = await prisma.taskAttachment.findMany({
+      where: { task_id: req.params.id }, orderBy: { created_date: 'desc' }
+    });
+    return res.status(200).json({ success: true, data: attachments });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Server error listing attachments' });
+  }
+};
+
+export const createAttachment = async (req: AuthenticatedRequest, res: Response) => {
+  const { file_name, mime_type, size, data_url } = req.body;
+  if (!file_name || !data_url) return res.status(400).json({ success: false, message: 'A file is required' });
+  if (Number(size) > 5 * 1024 * 1024) return res.status(400).json({ success: false, message: 'File must be 5 MB or smaller' });
+  try {
+    const attachment = await prisma.taskAttachment.create({ data: {
+      task_id: req.params.id, file_name, mime_type: mime_type || 'application/octet-stream',
+      size: Number(size) || 0, data_url, uploaded_by: req.employee?.full_name || null
+    }});
+    return res.status(201).json({ success: true, data: attachment });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Server error uploading attachment' });
+  }
+};
+
+export const deleteAttachment = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    await prisma.taskAttachment.delete({ where: { id: req.params.attachmentId } });
+    return res.status(200).json({ success: true });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message || 'Server error deleting attachment' });
+  }
+};

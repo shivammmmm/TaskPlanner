@@ -3,7 +3,7 @@ import { useOutletContext, Link } from 'react-router-dom';
 import { taskService } from '@/services/task.service';
 import { bucketService } from '@/services/bucket.service';
 import { authService } from '@/services/auth.service';
-import { Plus, Search, CheckSquare, MoreHorizontal, Edit, Trash2, Copy, ArrowUpRight } from 'lucide-react';
+import { Plus, Search, CheckSquare, MoreHorizontal, Edit, Trash2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,12 +12,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/use-toast';
 import PageHeader from '@/components/shared/PageHeader';
 import StatusBadge from '@/components/shared/StatusBadge';
 import EmptyState from '@/components/shared/EmptyState';
-import { format } from 'date-fns';
 
 export default function Tasks() {
   const { employee } = useOutletContext();
@@ -53,6 +52,10 @@ export default function Tasks() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('new') === '1') { setShowForm(true); window.history.replaceState({}, '', '/tasks'); }
+    const query = params.get('search');
+    const requestedView = params.get('view');
+    if (query) setSearch(query);
+    if (requestedView) setViewTab(requestedView);
   }, []);
 
   const today = new Date().toISOString().split('T')[0];
@@ -65,6 +68,7 @@ export default function Tasks() {
     else if (viewTab === 'pending') list = list.filter(t => t.status === 'todo' || t.status === 'in_progress');
     else if (viewTab === 'overdue') list = list.filter(t => t.due_date && t.due_date < today && t.status !== 'completed' && t.status !== 'archived');
     else if (viewTab === 'recurring') list = list.filter(t => t.is_recurring);
+    else if (viewTab === 'today') list = list.filter(t => t.due_date === today);
     return list;
   };
 
@@ -146,8 +150,8 @@ export default function Tasks() {
       />
 
       {/* View Tabs */}
-      <Tabs value={viewTab} onValueChange={setViewTab} className="mb-4">
-        <TabsList className="bg-white border">
+      <Tabs value={viewTab} onValueChange={setViewTab} className="mb-4 overflow-x-auto pb-1">
+        <TabsList className="bg-white border w-max">
           <TabsTrigger value="all">All Tasks</TabsTrigger>
           <TabsTrigger value="assigned_to_me">Assigned To Me</TabsTrigger>
           <TabsTrigger value="assigned_by_me">Assigned By Me</TabsTrigger>
@@ -206,7 +210,7 @@ export default function Tasks() {
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="divide-y divide-slate-100">
             {filtered.map(task => (
-              <div key={task.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 transition group">
+              <div key={task.id} className="flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-3.5 hover:bg-slate-50 transition group">
                 <button onClick={() => quickStatus(task.id, task.status === 'completed' ? 'todo' : 'completed')} className="shrink-0">
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition ${task.status === 'completed' ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 hover:border-blue-400'}`}>
                     {task.status === 'completed' && <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
@@ -214,18 +218,18 @@ export default function Tasks() {
                 </button>
                 <Link to={`/tasks/${task.id}`} className="flex-1 min-w-0">
                   <p className={`text-sm font-medium truncate ${task.status === 'completed' ? 'line-through text-slate-400' : 'text-slate-900'}`}>{task.title}</p>
-                  <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                  <div className="flex items-center gap-1 sm:gap-2 mt-0.5 text-xs text-slate-500 overflow-hidden">
                     {task.bucket_name && <span>{task.bucket_name}</span>}
                     {task.assigned_to_name && <span>· {task.assigned_to_name}</span>}
                     {task.due_date && <span>· Due {task.due_date}</span>}
                   </div>
                 </Link>
-                <div className="flex items-center gap-2">
-                  <StatusBadge status={task.priority} type="priority" />
-                  <StatusBadge status={task.status} />
+                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                  <div className="hidden md:block"><StatusBadge status={task.priority} type="priority" /></div>
+                  <div className="hidden sm:block"><StatusBadge status={task.status} /></div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100"><MoreHorizontal className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 sm:opacity-0 sm:group-hover:opacity-100"><MoreHorizontal className="w-4 h-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => handleEdit(task)}><Edit className="w-3.5 h-3.5 mr-2" />Edit</DropdownMenuItem>

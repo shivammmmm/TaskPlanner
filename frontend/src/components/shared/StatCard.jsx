@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-export default function StatCard({ icon: Icon, label, value, color = 'blue', trend }) {
+export default function StatCard({ icon: Icon, label, value, color = 'blue', trend, to }) {
   const colorMap = {
     blue: 'bg-blue-50 text-blue-600',
     green: 'bg-emerald-50 text-emerald-600',
@@ -10,8 +11,8 @@ export default function StatCard({ icon: Icon, label, value, color = 'blue', tre
     slate: 'bg-slate-50 text-slate-600',
   };
 
-  return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+  const content = (
+    <div className={`bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow ${to ? 'cursor-pointer hover:border-blue-200 focus-visible:ring-2 focus-visible:ring-blue-500' : ''}`}>
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-slate-500">{label}</p>
@@ -24,4 +25,7 @@ export default function StatCard({ icon: Icon, label, value, color = 'blue', tre
       </div>
     </div>
   );
+
+  if (!to) return content;
+  return <Link to={to} className="block rounded-xl focus:outline-none">{content}</Link>;
 }

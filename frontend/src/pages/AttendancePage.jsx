@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { attendanceService } from '@/services/attendance.service';
 import { authService } from '@/services/auth.service';
-import { UserCheck, Search, Plus, Calendar } from 'lucide-react';
+import { UserCheck, Plus, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -39,6 +39,10 @@ export default function AttendancePage() {
   };
 
   useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    const requestedStatus = new URLSearchParams(window.location.search).get('status');
+    if (requestedStatus) setStatusFilter(requestedStatus);
+  }, []);
 
   const filtered = records.filter(r => {
     if (dateFilter && r.date !== dateFilter) return false;
@@ -95,7 +99,7 @@ export default function AttendancePage() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
         <StatCard icon={UserCheck} label="Present Today" value={present} color="green" />
         <StatCard icon={UserCheck} label="Absent Today" value={absent} color="red" />
         <StatCard icon={UserCheck} label="Late Today" value={late} color="amber" />
@@ -123,8 +127,8 @@ export default function AttendancePage() {
       ) : filtered.length === 0 ? (
         <EmptyState icon={Calendar} title="No attendance records" description="Mark attendance to get started" />
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table className="w-full min-w-[640px]">
             <thead><tr className="bg-slate-50 border-b">
               <th className="text-left text-xs font-semibold text-slate-500 uppercase px-5 py-3">Employee</th>
               <th className="text-left text-xs font-semibold text-slate-500 uppercase px-5 py-3">Date</th>

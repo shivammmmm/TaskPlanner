@@ -26,7 +26,15 @@ export default function Meetings() {
     status: 'scheduled', reminder: '30min', location: ''
   });
 
-  const loadData = async () => { setMeetings(await meetingService.getMeetings('-date', 200)); setLoading(false); };
+  const loadData = async () => {
+    try {
+      setMeetings(await meetingService.getMeetings('-date', 200));
+    } catch (error) {
+      toast({ title: 'Could not load meetings', description: error.response?.data?.message || error.message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
@@ -37,12 +45,16 @@ export default function Meetings() {
   const filtered = meetings.filter(m => statusFilter === 'all' || m.status === statusFilter);
 
   const handleSave = async () => {
-    const data = { ...form, organizer_id: employee?.user_id, organizer_name: employee?.full_name };
-    if (editing) { await meetingService.updateMeeting(editing.id, data); toast({ title: 'Meeting updated' }); }
-    else { await meetingService.createMeeting(data); toast({ title: 'Meeting scheduled' }); }
-    setShowForm(false); setEditing(null);
-    setForm({ title: '', description: '', agenda: '', date: '', start_time: '', end_time: '', status: 'scheduled', reminder: '30min', location: '' });
-    loadData();
+    try {
+      const data = { ...form, time: form.start_time || undefined, organizer_id: employee?.user_id, organizer_name: employee?.full_name };
+      if (editing) { await meetingService.updateMeeting(editing.id, data); toast({ title: 'Meeting updated' }); }
+      else { await meetingService.createMeeting(data); toast({ title: 'Meeting scheduled' }); }
+      setShowForm(false); setEditing(null);
+      setForm({ title: '', description: '', agenda: '', date: '', start_time: '', end_time: '', status: 'scheduled', reminder: '30min', location: '' });
+      loadData();
+    } catch (error) {
+      toast({ title: 'Could not save meeting', description: error.response?.data?.message || error.message, variant: 'destructive' });
+    }
   };
 
   const handleEdit = (m) => {
@@ -84,9 +96,9 @@ export default function Meetings() {
               <div className="space-y-3">
                 {upcoming.map(m => (
                   <div key={m.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-sm transition">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
                           <Calendar className="w-4 h-4 text-blue-500" />
                           <span className="text-sm text-slate-500">{m.date} · {m.start_time || '—'} - {m.end_time || '—'}</span>
                           <StatusBadge status={m.status} />
@@ -115,7 +127,7 @@ export default function Meetings() {
               <div className="space-y-3">
                 {past.map(m => (
                   <div key={m.id} className="bg-white rounded-xl border border-slate-200 p-5 opacity-75">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm text-slate-500">{m.date}</span>
                       <h3 className="font-medium text-slate-700">{m.title}</h3>
                       <StatusBadge status={m.status} />

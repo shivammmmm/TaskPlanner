@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
 import { format } from 'date-fns';
+import { toast } from '@/components/ui/use-toast';
 
 const typeIcons = {
   task_assigned: '📋', task_completed: '✅', attendance: '🕐',
@@ -16,6 +17,7 @@ export default function Notifications() {
   const { employee } = useOutletContext();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [markingAll, setMarkingAll] = useState(false);
 
   const loadData = async () => {
     if (employee) {
@@ -27,15 +29,22 @@ export default function Notifications() {
   useEffect(() => { loadData(); }, [employee]);
 
   const markAllRead = async () => {
-    const unread = notifications.filter(n => !n.is_read);
-    for (const n of unread) {
-      await settingsService.updateNotification(n.id, { is_read: true });
+    setMarkingAll(true);
+    try {
+      await settingsService.markAllNotificationsRead();
+      setNotifications(current => current.map(n => ({ ...n, is_read: true })));
+      window.dispatchEvent(new Event('notifications-read'));
+      toast({ title: 'All notifications marked as read' });
+    } catch (error) {
+      toast({ title: 'Could not update notifications', description: error.response?.data?.message || error.message, variant: 'destructive' });
+    } finally {
+      setMarkingAll(false);
     }
-    loadData();
   };
 
   const markRead = async (id) => {
     await settingsService.updateNotification(id, { is_read: true });
+    window.dispatchEvent(new Event('notifications-read'));
     loadData();
   };
 
@@ -48,8 +57,8 @@ export default function Notifications() {
         description={unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
         actions={
           unreadCount > 0 && (
-            <Button variant="outline" size="sm" onClick={markAllRead}>
-              <CheckCheck className="w-4 h-4 mr-1.5" /> Mark All Read
+            <Button variant="outline" size="sm" onClick={markAllRead} disabled={markingAll}>
+              <CheckCheck className="w-4 h-4 mr-1.5" /> {markingAll ? 'Marking…' : 'Mark All Read'}
             </Button>
           )
         }

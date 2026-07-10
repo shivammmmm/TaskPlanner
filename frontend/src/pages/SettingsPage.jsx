@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { settingsService } from '@/services/settings.service';
-import { Settings, Building, Globe, Clock, Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,13 +39,18 @@ export default function SettingsPage() {
   }, []);
 
   const saveCompany = async () => {
-    if (settings) {
-      await settingsService.updateCompanySettings(settings.id, companyForm);
-    } else {
-      const created = await settingsService.createCompanySettings(companyForm);
-      setSettings(created);
+    try {
+      if (settings) {
+        const updated = await settingsService.updateCompanySettings(settings.id, companyForm);
+        setSettings(updated);
+      } else {
+        const created = await settingsService.createCompanySettings(companyForm);
+        setSettings(created);
+      }
+      toast({ title: 'Settings saved' });
+    } catch (error) {
+      toast({ title: 'Could not save settings', description: error.response?.data?.message || error.message, variant: 'destructive' });
     }
-    toast({ title: 'Settings saved' });
   };
 
   const addHoliday = async () => {
@@ -78,7 +83,7 @@ export default function SettingsPage() {
         <TabsContent value="company">
           <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
             <div><Label>Company Name</Label><Input value={companyForm.company_name} onChange={e => setCompanyForm({...companyForm, company_name: e.target.value})} className="mt-1 max-w-md" /></div>
-            <div className="grid grid-cols-2 gap-4 max-w-md">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
               <div>
                 <Label>Timezone</Label>
                 <Select value={companyForm.timezone} onValueChange={v => setCompanyForm({...companyForm, timezone: v})}>
@@ -110,7 +115,7 @@ export default function SettingsPage() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 max-w-md">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
               <div><Label>Work Start</Label><Input type="time" value={companyForm.work_start_time} onChange={e => setCompanyForm({...companyForm, work_start_time: e.target.value})} className="mt-1" /></div>
               <div><Label>Work End</Label><Input type="time" value={companyForm.work_end_time} onChange={e => setCompanyForm({...companyForm, work_end_time: e.target.value})} className="mt-1" /></div>
             </div>

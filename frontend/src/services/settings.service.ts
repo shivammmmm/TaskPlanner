@@ -1,4 +1,4 @@
-import { apiClient } from '../api/apiClient';
+import { apiClient, axiosInstance } from '../api/apiClient';
 import { CompanySettings, Holiday, Notification, ExternalAlert } from '../types/entities';
 
 export const settingsService = {
@@ -9,7 +9,7 @@ export const settingsService = {
   },
 
   async createCompanySettings(data: Omit<CompanySettings, 'id'>): Promise<CompanySettings> {
-    return apiClient.entities<CompanySettings>('CompanySettings').create(data);
+    return apiClient.entities<CompanySettings>('CompanySettings').update('', data);
   },
 
   async updateCompanySettings(id: string, data: Partial<CompanySettings>): Promise<CompanySettings> {
@@ -65,7 +65,15 @@ export const settingsService = {
   },
 
   async updateNotification(id: string, data: Partial<Notification>): Promise<Notification> {
+    if (data.is_read) {
+      const response = await axiosInstance.patch(`/notifications/${id}/read`);
+      return response.data.data;
+    }
     return apiClient.entities<Notification>('Notification').update(id, data);
+  },
+
+  async markAllNotificationsRead(): Promise<void> {
+    await axiosInstance.patch('/notifications/read-all');
   },
 
   async createNotification(data: Omit<Notification, 'id' | 'created_date'>): Promise<Notification> {

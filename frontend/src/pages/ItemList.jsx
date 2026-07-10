@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import { itemService } from '@/services/item.service';
 import { Plus, Search, List, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -70,8 +69,8 @@ export default function ItemList() {
       {loading ? <div className="bg-white rounded-xl border animate-pulse p-8"><div className="h-12 bg-slate-100 rounded" /></div> : filtered.length === 0 ? (
         <EmptyState icon={List} title="No items" description="Add items to your inventory" actionLabel="Add Item" onAction={() => setShowForm(true)} />
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table className="w-full min-w-[600px]">
             <thead><tr className="bg-slate-50 border-b">
               <th className="text-left text-xs font-semibold text-slate-500 uppercase px-5 py-3">Name</th>
               <th className="text-left text-xs font-semibold text-slate-500 uppercase px-5 py-3 hidden md:table-cell">Category</th>

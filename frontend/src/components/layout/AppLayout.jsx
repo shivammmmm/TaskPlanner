@@ -31,13 +31,13 @@ export default function AppLayout() {
 
       {/* Mobile sidebar */}
       <div className={`lg:hidden fixed inset-y-0 left-0 z-40 transition-transform duration-300 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <Sidebar collapsed={false} onToggle={() => setMobileOpen(false)} />
+        <Sidebar mobile collapsed={false} onToggle={() => setMobileOpen(false)} onNavigate={() => setMobileOpen(false)} />
       </div>
 
       {/* Main content */}
-      <div className={`transition-all duration-300 ${collapsed ? 'lg:ml-16' : 'lg:ml-60'}`}>
+      <div className={`min-w-0 transition-all duration-300 ${collapsed ? 'lg:ml-16' : 'lg:ml-60'}`}>
         <TopHeader onMobileMenuToggle={() => setMobileOpen(!mobileOpen)} employee={employee} />
-        <main className="p-4 lg:p-6">
+        <main className="min-w-0 overflow-x-hidden p-3 sm:p-4 lg:p-6">
           <Outlet context={{ employee }} />
         </main>
       </div>

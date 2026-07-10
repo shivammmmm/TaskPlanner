@@ -4,8 +4,7 @@ import { taskService } from '@/services/task.service';
 import { bucketService } from '@/services/bucket.service';
 import { attendanceService } from '@/services/attendance.service';
 import { reportService } from '@/services/report.service';
-import {
-  Users, CheckSquare, Clock, UserCheck, UserX, AlertTriangle,
+import { CheckSquare, Clock, UserCheck, UserX, AlertTriangle,
   FolderKanban, TrendingUp, ArrowRight, CalendarDays
 } from 'lucide-react';
 import StatCard from '@/components/shared/StatCard';
@@ -89,16 +88,16 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {isAdmin && (
           <>
-            <StatCard icon={UserCheck} label="Present Today" value={stats.present} color="green" />
-            <StatCard icon={UserX} label="Absent Today" value={stats.absent} color="red" />
-            <StatCard icon={Clock} label="Late Today" value={stats.late} color="amber" />
+            <StatCard icon={UserCheck} label="Present Today" value={stats.present} color="green" to="/attendance?status=present" />
+            <StatCard icon={UserX} label="Absent Today" value={stats.absent} color="red" to="/attendance?status=absent" />
+            <StatCard icon={Clock} label="Late Today" value={stats.late} color="amber" to="/attendance?status=late" />
           </>
         )}
-        <StatCard icon={CalendarDays} label="Today's Tasks" value={stats.todayTasks} color="blue" />
-        <StatCard icon={CheckSquare} label="Pending Tasks" value={stats.pending} color="amber" />
-        <StatCard icon={TrendingUp} label="Completed" value={stats.completed} color="green" />
-        <StatCard icon={AlertTriangle} label="Overdue" value={stats.overdue} color="red" />
-        <StatCard icon={FolderKanban} label="Active Buckets" value={stats.totalBuckets} color="purple" />
+        <StatCard icon={CalendarDays} label="Today's Tasks" value={stats.todayTasks} color="blue" to="/tasks?view=today" />
+        <StatCard icon={CheckSquare} label="Pending Tasks" value={stats.pending} color="amber" to="/tasks?view=pending" />
+        <StatCard icon={TrendingUp} label="Completed" value={stats.completed} color="green" to="/tasks?view=completed" />
+        <StatCard icon={AlertTriangle} label="Overdue" value={stats.overdue} color="red" to="/tasks?view=overdue" />
+        <StatCard icon={FolderKanban} label="Active Buckets" value={stats.totalBuckets} color="purple" to="/buckets" />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">

@@ -1,27 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Bell, Plus, Settings, HelpCircle, Menu, User, Video } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, Bell, Plus, Settings, HelpCircle, Menu, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import { settingsService } from '@/services/settings.service';
 import { authService } from '@/services/auth.service';
 
 export default function TopHeader({ onMobileMenuToggle, employee }) {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (employee) {
-      settingsService.getNotifications(employee.user_id)
+      const refreshUnread = () => settingsService.getNotifications(employee.user_id)
         .then(n => setUnreadCount(n.filter(x => !x.is_read).length))
         .catch(err => console.error(err));
+      refreshUnread();
+      window.addEventListener('notifications-read', refreshUnread);
+      return () => window.removeEventListener('notifications-read', refreshUnread);
     }
   }, [employee]);
+
+  const submitSearch = (event) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    navigate(query ? `/tasks?search=${encodeURIComponent(query)}` : '/tasks');
+  };
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
@@ -30,7 +39,7 @@ export default function TopHeader({ onMobileMenuToggle, employee }) {
         <button onClick={onMobileMenuToggle} className="lg:hidden p-2 rounded-lg hover:bg-slate-100">
           <Menu className="w-5 h-5 text-slate-600" />
         </button>
-        <div className="relative hidden md:block w-80">
+        <form className="relative hidden md:block w-80" onSubmit={submitSearch} role="search">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
             placeholder="Search tasks, members, buckets..."
@@ -38,7 +47,7 @@ export default function TopHeader({ onMobileMenuToggle, employee }) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
+        </form>
       </div>
 
       {/* Right */}
@@ -62,12 +71,12 @@ export default function TopHeader({ onMobileMenuToggle, employee }) {
 
         {/* Meeting */}
         <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
-          <Link to="/meetings"><Video className="w-4 h-4 text-slate-600" /></Link>
+          <Link to="/meetings" title="Meetings" aria-label="Meetings"><Video className="w-4 h-4 text-slate-600" /></Link>
         </Button>
 
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="h-9 w-9 relative" asChild>
-          <Link to="/notifications">
+          <Link to="/notifications" title="Notifications" aria-label="Notifications">
             <Bell className="w-4 h-4 text-slate-600" />
             {unreadCount > 0 && (
               <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -79,11 +88,11 @@ export default function TopHeader({ onMobileMenuToggle, employee }) {
 
         {/* Settings */}
         <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:flex" asChild>
-          <Link to="/settings"><Settings className="w-4 h-4 text-slate-600" /></Link>
+          <Link to="/settings" title="Settings" aria-label="Settings"><Settings className="w-4 h-4 text-slate-600" /></Link>
         </Button>
 
         {/* Help */}
-        <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:flex">
+        <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:flex" title="Help and FAQ" aria-label="Help and FAQ">
           <HelpCircle className="w-4 h-4 text-slate-600" />
         </Button>
 

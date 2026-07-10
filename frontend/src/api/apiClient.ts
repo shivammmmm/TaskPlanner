@@ -111,7 +111,8 @@ class EntityClient<T extends Record<string, any>> {
   }
 
   async update(id: string, data: Partial<T>): Promise<T> {
-    const response = await axiosInstance.put(`${this.basePath}/${id}`, data);
+    const path = this.entityName === 'CompanySettings' ? this.basePath : `${this.basePath}/${id}`;
+    const response = await axiosInstance.put(path, data);
     return response.data.data;
   }
 

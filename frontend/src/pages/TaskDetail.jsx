@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useOutletContext, Link } from 'react-router-dom';
 import { taskService } from '@/services/task.service';
-import { ArrowLeft, Clock, User, FolderKanban, Calendar, Send, Trash2, Plus, Check } from 'lucide-react';
+import { ArrowLeft, Clock, User, FolderKanban, Calendar, Send, Trash2, Plus, Upload, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/components/ui/use-toast';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -18,13 +16,16 @@ export default function TaskDetail() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [newCheckItem, setNewCheckItem] = useState('');
+  const [attachments, setAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      const [t, c] = await Promise.all([
+      const [t, c, a] = await Promise.all([
         taskService.getTask(id),
         taskService.getComments({ task_id: id }),
+        taskService.getAttachments(id),
       ]);
       setTask(t);
       setComments(c.map(comm => ({
@@ -32,6 +33,7 @@ export default function TaskDetail() {
         author_name: comm.employee_name || comm.author_name,
         author_id: comm.employee_id || comm.author_id
       })));
+      setAttachments(a);
       setLoading(false);
     };
     load();
@@ -74,6 +76,35 @@ export default function TaskDetail() {
   const removeCheckItem = (idx) => {
     const checklist = (task.checklist || []).filter((_, i) => i !== idx);
     updateTask({ checklist });
+  };
+
+  const uploadAttachment = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'File is too large', description: 'Choose a file up to 5 MB.', variant: 'destructive' });
+      return;
+    }
+    setUploading(true);
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const created = await taskService.uploadAttachment(id, { file_name: file.name, mime_type: file.type, size: file.size, data_url: dataUrl });
+      setAttachments(prev => [created, ...prev]);
+      toast({ title: 'Document uploaded' });
+    } catch (error) {
+      toast({ title: 'Could not upload document', description: error.response?.data?.message || error.message, variant: 'destructive' });
+    } finally { setUploading(false); }
+  };
+
+  const removeAttachment = async (attachmentId) => {
+    await taskService.deleteAttachment(id, attachmentId);
+    setAttachments(prev => prev.filter(item => item.id !== attachmentId));
   };
 
   if (loading) {
@@ -157,6 +188,26 @@ export default function TaskDetail() {
                 className="flex-1" onKeyDown={e => e.key === 'Enter' && addCheckItem()} />
               <Button size="sm" variant="outline" onClick={addCheckItem}><Plus className="w-4 h-4" /></Button>
             </div>
+          </div>
+
+          {/* Comments */}
+          <div className="bg-white rounded-xl border border-slate-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-slate-900">Documents ({attachments.length})</h2>
+              <Button asChild size="sm" variant="outline">
+                <label className="cursor-pointer"><Upload className="w-4 h-4 mr-1.5" />{uploading ? 'Uploading…' : 'Upload'}<input type="file" className="hidden" disabled={uploading} onChange={uploadAttachment} /></label>
+              </Button>
+            </div>
+            {attachments.length === 0 ? <p className="text-sm text-slate-400">No documents attached</p> : (
+              <div className="space-y-2">{attachments.map(item => (
+                <div key={item.id} className="flex items-center gap-3 rounded-lg border p-3">
+                  <Paperclip className="w-4 h-4 text-slate-400" />
+                  <a href={item.data_url} download={item.file_name} className="text-sm text-blue-600 hover:underline flex-1 truncate">{item.file_name}</a>
+                  <span className="text-xs text-slate-400">{Math.ceil(item.size / 1024)} KB</span>
+                  <button onClick={() => removeAttachment(item.id)} aria-label={`Delete ${item.file_name}`} className="text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              ))}</div>
+            )}
           </div>
 
           {/* Comments */}

@@ -41,7 +41,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
+app.use(express.json({ limit: '7mb' }));
 
 // Auth routes
 app.post('/api/auth/login', authLimiter, authController.login);
@@ -78,6 +78,9 @@ app.get('/api/tasks/:id/comments', authenticateJWT, taskController.listComments)
 app.post('/api/tasks/:id/comments', authenticateJWT, taskController.createComment);
 app.post('/api/tasks/:id/checklist', authenticateJWT, taskController.createChecklist);
 app.patch('/api/tasks/:id/checklist/:checklistId', authenticateJWT, taskController.updateChecklistStatus);
+app.get('/api/tasks/:id/attachments', authenticateJWT, taskController.listAttachments);
+app.post('/api/tasks/:id/attachments', authenticateJWT, taskController.createAttachment);
+app.delete('/api/tasks/:id/attachments/:attachmentId', authenticateJWT, taskController.deleteAttachment);
 
 // Attendance
 app.get('/api/attendance', authenticateJWT, attendanceController.listAttendance);

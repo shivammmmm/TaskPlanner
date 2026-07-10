@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { authService } from '@/services/auth.service';
-import { Save, User } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,19 +46,19 @@ export default function Profile() {
         </div>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><Label>Full Name</Label><Input value={form.full_name} onChange={e => setForm({...form, full_name: e.target.value})} className="mt-1" /></div>
             <div><Label>Mobile</Label><Input value={form.mobile} onChange={e => setForm({...form, mobile: e.target.value})} className="mt-1" /></div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><Label>Department</Label><Input value={form.department} onChange={e => setForm({...form, department: e.target.value})} className="mt-1" /></div>
             <div><Label>Designation</Label><Input value={form.designation} onChange={e => setForm({...form, designation: e.target.value})} className="mt-1" /></div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><Label>Email</Label><Input value={employee?.email || ''} disabled className="mt-1 bg-slate-50" /></div>
             <div><Label>Employee Code</Label><Input value={employee?.employee_code || ''} disabled className="mt-1 bg-slate-50" /></div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><Label>Role</Label><Input value={employee?.role?.replace('_', ' ') || ''} disabled className="mt-1 bg-slate-50 capitalize" /></div>
             <div><Label>Joining Date</Label><Input value={employee?.joining_date || ''} disabled className="mt-1 bg-slate-50" /></div>
           </div>

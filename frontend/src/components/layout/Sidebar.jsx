@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Users, FolderKanban, CheckSquare, Clock,
-  Calendar, UserCheck, Bell, BarChart3, List, Megaphone,
+  Calendar, UserCheck, BarChart3, List, Megaphone,
   Settings, AlertTriangle, Video, ChevronLeft, ChevronRight,
   LogOut, Briefcase
 } from 'lucide-react';
@@ -24,7 +24,7 @@ const navItems = [
   { label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
-export default function Sidebar({ collapsed, onToggle }) {
+export default function Sidebar({ collapsed, onToggle, onNavigate, mobile = false }) {
   const location = useLocation();
 
   const isActive = (path) => {
@@ -33,7 +33,7 @@ export default function Sidebar({ collapsed, onToggle }) {
   };
 
   return (
-    <aside className={`fixed left-0 top-0 h-screen bg-[hsl(222,47%,11%)] text-[hsl(213,31%,91%)] z-40 flex flex-col transition-all duration-300 ${collapsed ? 'w-16' : 'w-60'}`}>
+    <aside className={`${mobile ? 'relative' : 'fixed left-0 top-0'} h-screen bg-[hsl(222,47%,11%)] text-[hsl(213,31%,91%)] z-40 flex flex-col transition-all duration-300 ${collapsed ? 'w-16' : 'w-60'}`}>
       {/* Logo */}
       <div className="h-16 flex items-center px-4 border-b border-white/10">
         <Briefcase className="w-7 h-7 text-blue-400 shrink-0" />
@@ -46,6 +46,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           <Link
             key={item.path}
             to={item.path}
+            onClick={onNavigate}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group
               ${isActive(item.path)
                 ? 'bg-blue-600/20 text-blue-400'
@@ -74,7 +75,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/5 hover:text-white w-full transition-all ${collapsed ? 'justify-center' : ''}`}
         >
           {collapsed ? <ChevronRight className="w-[18px] h-[18px]" /> : <ChevronLeft className="w-[18px] h-[18px]" />}
-          {!collapsed && <span>Collapse</span>}
+          {!collapsed && <span>{mobile ? 'Close menu' : 'Collapse'}</span>}
         </button>
       </div>
     </aside>
